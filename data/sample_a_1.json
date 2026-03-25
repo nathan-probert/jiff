@@ -1,0 +1,10 @@
+{
+  "name": "Playcode",
+  "version": "2.0",
+  "features": ["JSON Formatter", "Regex Tester"],
+  "config": {
+    "theme": "dark",
+    "ads": false
+  },
+  "users": 10000000
+}

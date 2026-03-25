@@ -1,0 +1,11 @@
+{
+  "name": "Playcode",
+  "version": "2.1",
+  "features": ["JSON Formatter", "Regex Tester", "JSON Diff"],
+  "config": {
+    "theme": "light",
+    "ads": false,
+    "premium": true
+  },
+  "users": 1100000
+}
