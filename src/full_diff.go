@@ -18,7 +18,7 @@ type lineOp struct {
     line string
 }
 
-func formatFullDiff(left, right any) (string, error) {
+func formatFull(left, right any) (string, error) {
     leftLines, err := prettyLines(left)
     if err != nil {
         return "", err

@@ -6,33 +6,54 @@ import (
     "strings"
 )
 
-func formatResult(result DiffResult, mode outputMode) (string, error) {
+func formatResult(result DiffResult, mode outputMode, left, right any) (string, error) {
     switch mode {
     case modeRaw:
-        return formatRaw(result)
-    case modeVerbose:
-        return formatText(result, true), nil
+        return formatRaw(result), nil
     case modeSummary:
-        return formatText(result, false), nil
+        return formatText(result), nil
     default:
-        return "", fmt.Errorf("unknown output mode: %s", mode)
+        return formatFull(left, right)
     }
 }
 
-func formatRaw(result DiffResult) (string, error) {
-    b, err := json.MarshalIndent(result, "", "  ")
+func formatRaw(result DiffResult) string {
+    changed := result.Changed
+    if changed == nil {
+        changed = []ChangedItem{}
+    }
+    added := result.Added
+    if added == nil {
+        added = []AddedItem{}
+    }
+    removed := result.Removed
+    if removed == nil {
+        removed = []RemovedItem{}
+    }
+
+    payload := struct {
+        Changed []ChangedItem `json:"changed"`
+        Added   []AddedItem   `json:"added"`
+        Removed []RemovedItem `json:"removed"`
+    }{
+        Changed: changed,
+        Added:   added,
+        Removed: removed,
+    }
+
+    data, err := json.MarshalIndent(payload, "", "  ")
     if err != nil {
-        return "", err
+        return fmt.Sprintf("{\"error\":%q}\n", err.Error())
     }
-    return string(b) + "\n", nil
+    return string(data) + "\n"
 }
 
-func formatText(result DiffResult, verbose bool) string {
+func formatText(result DiffResult) string {
     var sb strings.Builder
 
     writeChanged(&sb, result.Changed)
     writeAdded(&sb, result.Added)
-    writeRemoved(&sb, result.Removed, verbose)
+    writeRemoved(&sb, result.Removed)
     writeReordered(&sb, result.Reordered)
 
     if sb.Len() == 0 {
@@ -63,17 +84,13 @@ func writeAdded(sb *strings.Builder, items []AddedItem) {
     sb.WriteString("\n")
 }
 
-func writeRemoved(sb *strings.Builder, items []RemovedItem, verbose bool) {
+func writeRemoved(sb *strings.Builder, items []RemovedItem) {
     if len(items) == 0 {
         return
     }
     fmt.Fprintf(sb, "Removed (%d):\n", len(items))
     for _, item := range items {
-        if verbose {
-            fmt.Fprintf(sb, "  %s: %s\n", item.Path, prettyJSON(item.Value))
-        } else {
-            fmt.Fprintf(sb, "  %s\n", item.Path)
-        }
+        fmt.Fprintf(sb, "  %s\n", item.Path)
     }
     sb.WriteString("\n")
 }

@@ -5,7 +5,7 @@ before:
     - go mod tidy
 
 builds:
-  - main: .
+  - main: ./src
     binary: jiff
     env:
       - CGO_ENABLED=0

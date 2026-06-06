@@ -10,11 +10,12 @@ import (
     "strings"
 )
 
+var version = "dev"
+
 type outputMode string
 
 const (
     modeSummary outputMode = "summary"
-    modeVerbose outputMode = "verbose"
     modeRaw     outputMode = "raw"
     modeFull    outputMode = "full"
 )
@@ -55,22 +56,11 @@ func main() {
         Unordered: opts.Unordered,
     })
 
-    if opts.Mode == modeFull {
-        output, err := formatFullDiff(left, right)
-        if err != nil {
-            fmt.Fprintf(os.Stderr, "failed to format full diff: %v\n", err)
-            os.Exit(1)
-        }
-        fmt.Print(output)
-        return
-    }
-
-    output, err := formatResult(result, opts.Mode)
+    output, err := formatResult(result, opts.Mode, left, right)
     if err != nil {
         fmt.Fprintf(os.Stderr, "failed to format diff: %v\n", err)
         os.Exit(1)
     }
-
     fmt.Print(output)
 }
 
@@ -81,23 +71,28 @@ func parseFlags(args []string) (cliOptions, error) {
     ignoreCSV := fs.String("ignore", "", "Comma-separated list of fields to ignore recursively")
     matchKey := fs.String("match", "", "Key used to match objects inside arrays")
     unordered := fs.Bool("unordered", false, "Treat arrays as unordered")
-    summary := fs.Bool("summary", false, "Summary (default) output")
-    verbose := fs.Bool("verbose", false, "Verbose output with full values")
+    summary := fs.Bool("summary", false, "Summary output")
     raw := fs.Bool("raw", false, "Raw JSON diff output")
     full := fs.Bool("full", false, "Classic colorized full diff")
+    versionFlag := fs.Bool("version", false, "Print version and exit")
 
     if err := fs.Parse(normalizeArgOrder(args)); err != nil {
         return cliOptions{}, usageError(err.Error())
     }
 
-    mode, err := pickMode(*summary, *verbose, *raw, *full)
+    if *versionFlag {
+        fmt.Println(version)
+        os.Exit(0)
+    }
+
+    mode, err := pickMode(*summary, *raw, *full)
     if err != nil {
         return cliOptions{}, usageError(err.Error())
     }
 
     positional := fs.Args()
     if len(positional) != 2 {
-        return cliOptions{}, usageError("usage: jiff <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--verbose|--raw|--full]")
+        return cliOptions{}, usageError("usage: jiff <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--raw|--full]")
     }
 
     return cliOptions{
@@ -163,34 +158,26 @@ func usageError(msg string) error {
     return errors.New(msg)
 }
 
-func pickMode(summary, verbose, raw, full bool) (outputMode, error) {
-    selected := 0
-    if summary {
-        selected++
+func pickMode(summary, raw, full bool) (outputMode, error) {
+    trueCount := 0
+    for _, b := range []bool{summary, raw, full} {
+        if b {
+            trueCount++
+        }
     }
-    if verbose {
-        selected++
-    }
-    if raw {
-        selected++
-    }
-    if full {
-        selected++
+    if trueCount > 1 {
+        return "", errors.New("choose exactly one output mode: --summary, --raw, or --full")
     }
 
-    if selected > 1 {
-        return "", errors.New("choose only one output mode: --summary, --verbose, --raw, or --full")
-    }
-    if full {
-        return modeFull, nil
+    if summary {
+        return modeSummary, nil
     }
     if raw {
         return modeRaw, nil
     }
-    if verbose {
-        return modeVerbose, nil
-    }
-    return modeSummary, nil
+
+    // default to full mode
+    return modeFull, nil
 }
 
 func parseIgnoreCSV(csv string) []string {

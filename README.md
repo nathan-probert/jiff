@@ -8,20 +8,25 @@ Intent-aware JSON diff CLI written in Go.
 - Ignores key order in objects.
 - Supports recursive ignored fields.
 - Handles arrays with index mode, unordered mode, or key-based matching.
-- Produces summary, verbose, raw JSON, or full colorized diff output.
+- Produces summary, raw JSON, or full colorized diff output.
 
 ## Build
 
 Requirements: Go 1.22+
 
 ```bash
-go build -o jiff .
+go build -o jiff ./src
+```
+
+Or to build with goreleaser:
+```bash
+goreleaser release --snapshot --clean
 ```
 
 ## Usage
 
 ```bash
-jiff <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--verbose|--raw|--full]
+jiff <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--raw|--full]
 ```
 
 ## Flags
@@ -34,8 +39,6 @@ jiff <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--
 	- Treats arrays as unordered multisets.
 - `--summary`
 	- Minimal human-readable output (default).
-- `--verbose`
-	- Human-readable output including removed values.
 - `--raw`
 	- Machine-readable JSON output.
 - `--full`
@@ -47,12 +50,6 @@ Summary mode (default):
 
 ```bash
 jiff a.json b.json --ignore updatedAt,id --match id
-```
-
-Verbose mode:
-
-```bash
-jiff a.json b.json --verbose
 ```
 
 Raw JSON output:
