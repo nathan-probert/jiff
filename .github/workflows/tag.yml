@@ -26,8 +26,10 @@ jobs:
 
       - name: Create tag
         run: |
+          VERSION=$(cat VERSION)
+
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          git tag v${{ steps.version.outputs.VERSION }}
-          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }} v${{ steps.version.outputs.VERSION }}
+          git tag v$VERSION
+          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/nathan-probert/jiff.git v$VERSION
