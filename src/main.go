@@ -1,12 +1,8 @@
 package main
 
 import (
-    "encoding/json"
-    "errors"
     "fmt"
-    "io"
     "os"
-    "strings"
 )
 
 var version = "dev"
@@ -51,8 +47,10 @@ func main() {
         MatchKey:  opts.MatchKey,
         Unordered: opts.Unordered,
     })
+    result.Left = left
+    result.Right = right
 
-    output, err := formatResult(result, opts.Mode, left, right)
+    output, err := formatResult(result, opts.Mode)
     if err != nil {
         errorAndExit(fmt.Sprintf("failed to format diff: %v", err))
     }

@@ -6,18 +6,18 @@ import (
     "strings"
 )
 
-func formatResult(result DiffResult, mode outputMode, left, right any) (string, error) {
+func formatResult(result DiffResult, mode outputMode) (string, error) {
     switch mode {
     case modeRaw:
-        return formatRaw(result), nil
+        return formatRaw(result)
     case modeSummary:
-        return formatText(result), nil
+        return formatText(result)
     default:
-        return formatFull(left, right)
+        return formatFull(result)
     }
 }
 
-func formatRaw(result DiffResult) string {
+func formatRaw(result DiffResult) (string, error) {
     changed := result.Changed
     if changed == nil {
         changed = []ChangedItem{}
@@ -43,12 +43,12 @@ func formatRaw(result DiffResult) string {
 
     data, err := json.MarshalIndent(payload, "", "  ")
     if err != nil {
-        return fmt.Sprintf("{\"error\":%q}\n", err.Error())
+        return "", err
     }
-    return string(data) + "\n"
+    return string(data) + "\n", nil
 }
 
-func formatText(result DiffResult) string {
+func formatText(result DiffResult) (string, error) {
     var sb strings.Builder
 
     writeChanged(&sb, result.Changed)
@@ -57,9 +57,9 @@ func formatText(result DiffResult) string {
     writeReordered(&sb, result.Reordered)
 
     if sb.Len() == 0 {
-        return "No meaningful differences.\n"
+        return "No meaningful differences.\n", nil
     }
-    return strings.TrimRight(sb.String(), "\n") + "\n"
+    return strings.TrimRight(sb.String(), "\n") + "\n", nil
 }
 
 func writeChanged(sb *strings.Builder, items []ChangedItem) {

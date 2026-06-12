@@ -18,12 +18,12 @@ type lineOp struct {
     line string
 }
 
-func formatFull(left, right any) (string, error) {
-    leftLines, err := prettyLines(left)
+func formatFull(result DiffResult) (string, error) {
+    leftLines, err := prettyLines(result.Left)
     if err != nil {
         return "", err
     }
-    rightLines, err := prettyLines(right)
+    rightLines, err := prettyLines(result.Right)
     if err != nil {
         return "", err
     }

@@ -33,6 +33,8 @@ type DiffResult struct {
     Added     []AddedItem   `json:"added"`
     Removed   []RemovedItem `json:"removed"`
     Reordered []string      `json:"reordered"`
+    Left      any           `json:"left"`
+    Right     any           `json:"right"`
 }
 
 func diffValues(a, b any, opts DiffOptions) DiffResult {

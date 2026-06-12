@@ -6,6 +6,8 @@ import (
 	"io" 
 	"fmt" 
 	"os"
+    "encoding/json"
+    "errors"
 )
 
 func normalizeArgOrder(args []string) []string {
