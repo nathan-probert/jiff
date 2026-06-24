@@ -54,13 +54,29 @@ func parseFlags(args []string) (cliOptions, error) {
     fs := flag.NewFlagSet("jiff", flag.ContinueOnError)
     fs.SetOutput(io.Discard)
 
-    ignoreCSV := fs.String("ignore", "", "Comma-separated list of fields to ignore recursively")
-    matchKey := fs.String("match", "", "Key used to match objects inside arrays")
-    unordered := fs.Bool("unordered", false, "Treat arrays as unordered")
-    summary := fs.Bool("summary", false, "Summary output")
-    raw := fs.Bool("raw", false, "Raw JSON diff output")
-    full := fs.Bool("full", false, "Classic colorized full diff")
-    versionFlag := fs.Bool("version", false, "Print version and exit")
+    prettyInput := fs.String("p", "", "Pretty print a file and exit")
+    fs.StringVar(prettyInput, "pretty", "", "Pretty print a file and exit")
+
+    ignoreCSV := fs.String("i", "", "Comma-separated list of fields to ignore recursively")
+    fs.StringVar(ignoreCSV, "ignore", "", "Comma-separated list of fields to ignore recursively")
+
+    matchKey := fs.String("m", "", "Key used to match objects inside arrays")
+    fs.StringVar(matchKey, "match", "", "Key used to match objects inside arrays")
+
+    unordered := fs.Bool("u", false, "Treat arrays as unordered")
+    fs.BoolVar(unordered, "unordered", false, "Treat arrays as unordered")
+
+    summary := fs.Bool("s", false, "Summary output")
+    fs.BoolVar(summary, "summary", false, "Summary output")
+
+    raw := fs.Bool("r", false, "Raw JSON diff output")
+    fs.BoolVar(raw, "raw", false, "Raw JSON diff output")
+
+    full := fs.Bool("f", false, "Classic colorized full diff")
+    fs.BoolVar(full, "full", false, "Classic colorized full diff")
+
+    versionFlag := fs.Bool("v", false, "Print version and exit")
+    fs.BoolVar(versionFlag, "version", false, "Print version and exit")
 
     err := fs.Parse(normalizeArgOrder(args))
     if err != nil {
@@ -72,6 +88,14 @@ func parseFlags(args []string) (cliOptions, error) {
         os.Exit(0)
     }
 
+    pretty := strings.TrimSpace(*prettyInput)
+    if pretty != "" {
+        if len(fs.Args()) != 0 {
+            return cliOptions{}, usageError("usage: jiff -p <file>")
+        }
+        return cliOptions{PrettyInput: pretty}, nil
+    }
+
     mode, err := pickMode(*summary, *raw, *full)
     if err != nil {
         return cliOptions{}, usageError(err.Error())
@@ -79,7 +103,7 @@ func parseFlags(args []string) (cliOptions, error) {
 
     positional := fs.Args()
     if len(positional) != 2 {
-        return cliOptions{}, usageError("usage: jiff <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--raw|--full]")
+        return cliOptions{}, usageError("usage: jiff [-p file] <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--raw|--full]")
     }
 
     return cliOptions{
@@ -94,6 +118,8 @@ func parseFlags(args []string) (cliOptions, error) {
 
 func flagNeedsValue(name string) bool {
     switch name {
+    case "-p", "--pretty":
+        return true
     case "--ignore", "--match":
         return true
     default:

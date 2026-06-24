@@ -26,7 +26,7 @@ goreleaser release --snapshot --clean
 ## Usage
 
 ```bash
-jiff <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--raw|--full]
+jiff [-p file] <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--raw|--full]
 ```
 
 ## Flags
@@ -43,8 +43,16 @@ jiff <file1> <file2> [--ignore fields] [--match key] [--unordered] [--summary|--
 	- Machine-readable JSON output.
 - `--full`
 	- Classic full line diff with colorized additions/removals.
+- `-p` / `--pretty`
+	- Pretty prints the contents of a file and exits.
 
 ## Examples
+
+Pretty print a file:
+
+```bash
+jiff -p data.json
+```
 
 Summary mode (default):
 
