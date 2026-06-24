@@ -20,6 +20,7 @@ type cliOptions struct {
     MatchKey     string
     Unordered    bool
     Mode         outputMode
+    PrettyInput  string
     FileA        string
     FileB        string
 }
@@ -28,6 +29,15 @@ func main() {
     opts, err := parseFlags(os.Args[1:])
     if err != nil {
         errorAndExit(err.Error())
+    }
+
+    if opts.PrettyInput != "" {
+        output, err := formatPrettyInput(opts.PrettyInput)
+        if err != nil {
+            errorAndExit(fmt.Sprintf("failed to pretty print input: %v", err))
+        }
+        fmt.Print(output)
+        return
     }
 
     left, err := parseJSONFile(opts.FileA)
